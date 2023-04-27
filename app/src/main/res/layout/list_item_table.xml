@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background_table"
+    android:elevation="5dp"
+    android:layout_marginBottom="20dp"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp">
+
+    <RelativeLayout
+        android:id="@+id/fragment_container"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background_table"
+        android:focusableInTouchMode="true"
+        android:padding="10dp">
+
+        <RelativeLayout
+            android:id="@+id/titleBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+            <RelativeLayout
+                android:id="@+id/ic_upDown_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true">
+                <ImageView
+                    android:id="@+id/iconDown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_down"
+                    android:layout_centerVertical="true"
+                    android:visibility="gone"/>
+                <ImageView
+                    android:id="@+id/iconUp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_up"
+                    android:layout_centerVertical="true" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tableName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Table 1"
+                android:layout_toRightOf="@+id/ic_upDown_container"
+                android:layout_centerVertical="true"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginLeft="15dp"
+                android:visibility="visible"/>
+            <EditText
+                android:id="@+id/editTableName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Table 1"
+                android:layout_toRightOf="@+id/ic_upDown_container"
+                android:layout_centerVertical="true"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginLeft="15dp"
+                android:visibility="gone"/>
+            <ImageView
+                android:id="@+id/acceptBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_check"
+                android:layout_toEndOf="@+id/editTableName"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="20dp"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/iconDownload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_download"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <com.evrencoskun.tableview.TableView
+            android:id="@+id/table_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/titleBar"
+            app:allow_click_inside_cell="true"
+            app:allow_click_inside_column_header="true"
+            app:allow_click_inside_row_header="true"
+            app:separator_color="@color/border_table" />
+        
+        <TextView
+            android:id="@+id/addTaskBtn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="+ Add new task"
+            android:textColor="@color/border_table"
+            android:textSize="16sp"
+            android:layout_below="@+id/table_container"
+            android:background="@drawable/custom_border"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="7dp"
+            android:paddingLeft="20dp"/>
+    </RelativeLayout>
+
+</RelativeLayout>
