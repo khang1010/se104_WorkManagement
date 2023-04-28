@@ -77,7 +77,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         tables.get(position).getTasks().forEach(t -> {
             List<Cell> list = new ArrayList<>();
             list.add(new Cell("1", t.getTextAttributes().get(0).getValue()));
-            list.add(new Cell("2", t.getUser().getPhotoUrl().equals("null") ? "default" : t.getUser().getPhotoUrl(), t.getUser().getEmail()));
+            list.add(new Cell("2", t.getUser().getPhotoUrl().equals("null") ? "default" : t.getUser().getPhotoUrl(), t.getUser().getDisplayName()));
             Date date = null;
             try {
                 date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(t.getDateAttributes().get(0).getValue());
@@ -96,22 +96,6 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         tableViewAdapter.setAllItems(tableViewModel.getColumnHeaderList(), tableViewModel.getRowHeaderList(), tableViewModel.getCellList());
         tableViewAdapter.setCellItems(listCells);
         holder.addTask.setOnClickListener(view -> showCreateTaskDialog(tableViewAdapter, listCells));
-
-        holder.tableName.setOnClickListener(view -> {
-            holder.editTable.setVisibility(View.VISIBLE);
-            holder.accept.setVisibility(View.VISIBLE);
-            holder.tableName.setVisibility(View.GONE);
-        });
-        holder.accept.setOnClickListener(view -> {
-            if (holder.editTable.getText().toString().equals("")) {
-                Toast.makeText(context, "Please fill information", Toast.LENGTH_SHORT).show();
-            } else {
-                holder.tableName.setVisibility(View.VISIBLE);
-                holder.editTable.setVisibility(View.GONE);
-                holder.accept.setVisibility(View.GONE);
-                holder.tableName.setText(holder.editTable.getText().toString());
-            }
-        });
     }
 
     @Override
@@ -139,7 +123,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         btnCreateTask.setOnClickListener(view -> {
             if (!txtTaskName.getText().toString().equals("") && adapter.isChosen()) {
                 Cell cell1 = new Cell("1", txtTaskName);
-                Cell cell2 = new Cell("2", adapter.getUser().getPhotoUrl(), adapter.getUser().getEmail());
+                Cell cell2 = new Cell("2", adapter.getUser().getPhotoUrl(), adapter.getUser().getDisplayName());
                 SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm dd/MM/yyyy");
                 Date date = new Date();
                 String text = String.valueOf(dateFormat.format(date));
@@ -222,6 +206,21 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
                 up.setVisibility(View.GONE);
                 table.setVisibility(View.GONE);
                 addTask.setVisibility(View.GONE);
+            });
+            tableName.setOnClickListener(view -> {
+                editTable.setVisibility(View.VISIBLE);
+                accept.setVisibility(View.VISIBLE);
+                tableName.setVisibility(View.GONE);
+            });
+            accept.setOnClickListener(view -> {
+                if (editTable.getText().toString().equals("")) {
+                    Toast.makeText(context, "Please fill information", Toast.LENGTH_SHORT).show();
+                } else {
+                    tableName.setText(editTable.getText().toString());
+                    tableName.setVisibility(View.VISIBLE);
+                    editTable.setVisibility(View.GONE);
+                    accept.setVisibility(View.GONE);
+                }
             });
 
         }
