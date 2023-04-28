@@ -23,12 +23,9 @@ import androidx.fragment.app.DialogFragment;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
-import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 
@@ -240,33 +237,6 @@ public class ChartFragment extends Fragment {
                 Button btn_select_date_start_piechart = dialog_chart.findViewById(R.id.btn_select_date_start_piechart);
                 Button btn_select_date_end_piechart = dialog_chart.findViewById(R.id.btn_select_date_end_piechart);
 
-                SeekBar seekbar_number_barchart = dialog_chart.findViewById(R.id.seekbar_number_barchart);
-                SeekBar seekbar_number_linechart = dialog_chart.findViewById(R.id.seekbar_number_linechart);
-                SeekBar seekbar_number_piechart = dialog_chart.findViewById(R.id.seekbar_number_piechart);
-
-                Spinner spinner_unit_barchart = dialog_chart.findViewById(R.id.spinner_unit_barchart);
-                Spinner spinner_unit_linechart = dialog_chart.findViewById(R.id.spinner_unit_linechart);
-                Spinner spinner_unit_piechart = dialog_chart.findViewById(R.id.spinner_unit_piechart);
-
-                //set max for seekbar
-                int maxPeopleInBoard = 50;
-                seekbar_number_barchart.setMax(maxPeopleInBoard);
-                seekbar_number_linechart.setMax(maxPeopleInBoard);
-                seekbar_number_piechart.setMax(maxPeopleInBoard);
-
-                //set process for seekbar
-                seekbar_number_barchart.setProgress(5);
-                seekbar_number_linechart.setProgress(1);
-                seekbar_number_piechart.setProgress(50);
-
-                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(), R.array.chart_unit, android.R.layout.simple_spinner_item);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-                spinner_unit_barchart.setAdapter(adapter);
-                spinner_unit_linechart.setAdapter(adapter);
-                spinner_unit_piechart.setAdapter(adapter);
-
-
 
                 btn_select_date_start_barchart.setText(day+"/"+(month+1)+"/"+year);
                 btn_select_date_end_barchart.setText(day+"/"+(month+1)+"/"+year);
@@ -283,7 +253,7 @@ public class ChartFragment extends Fragment {
                         DatePickerDialog dpd = new DatePickerDialog(getActivity(),AlertDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                btn_select_date_start_barchart.setText(day + "/" + (month+1) + "/" + year);
+                                btn_select_date_start_barchart.setText(day + " " + month + " " + year);
                             }
                         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE));
                         dpd.show();
@@ -297,7 +267,7 @@ public class ChartFragment extends Fragment {
                         DatePickerDialog dpd = new DatePickerDialog(getActivity(),AlertDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                btn_select_date_end_barchart.setText(day + "/" + (month+1) + "/" + year);
+                                btn_select_date_end_barchart.setText(day + " " + month + " " + year);
                             }
                         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE));
                         dpd.show();
@@ -325,7 +295,7 @@ public class ChartFragment extends Fragment {
                         DatePickerDialog dpd = new DatePickerDialog(getActivity(),AlertDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                btn_select_date_end_linechart.setText(day + "/" + (month+1) + "/" + year);
+                                btn_select_date_end_linechart.setText(day + " " + month + " " + year);
                             }
                         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE));
                         dpd.show();
@@ -339,7 +309,7 @@ public class ChartFragment extends Fragment {
                         DatePickerDialog dpd = new DatePickerDialog(getActivity(),AlertDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                btn_select_date_start_piechart.setText(day + "/" + (month+1) + "/" + year);
+                                btn_select_date_start_piechart.setText(day + " " + month + " " + year);
                             }
                         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE));
                         dpd.show();
@@ -353,7 +323,7 @@ public class ChartFragment extends Fragment {
                         DatePickerDialog dpd = new DatePickerDialog(getActivity(),AlertDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                                btn_select_date_end_piechart.setText(day + "/" + (month+1) + "/" + year);
+                                btn_select_date_end_piechart.setText(day + " " + month + " " + year);
                             }
                         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE));
                         dpd.show();

@@ -6,19 +6,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:gravity="center">
         <CheckBox
             android:layout_width="100dp"
             android:layout_height="match_parent"
             android:id="@+id/checkbox_barchart"
             android:text="Bar chart"/>
-        <SeekBar
+        <Spinner
             android:layout_width="100dp"
             android:layout_height="match_parent"
-            android:progress="5"
-            android:id="@+id/seekbar_number_barchart"/>
+            android:id="@+id/spinner_number_barchart"/>
         <Spinner
             android:layout_width="100dp"
             android:layout_height="match_parent"
@@ -29,8 +28,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp">
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp">
         <Button
             android:layout_width="150dp"
             android:layout_height="match_parent"
@@ -58,11 +57,10 @@
             android:layout_height="match_parent"
             android:id="@+id/checkbox_linechart"
             android:text="Line chart"/>
-        <SeekBar
+        <Spinner
             android:layout_width="100dp"
             android:layout_height="match_parent"
-            android:progress="1"
-            android:id="@+id/seekbar_number_linechart"/>
+            android:id="@+id/spinner_number_linechart"/>
         <Spinner
             android:layout_width="100dp"
             android:layout_height="match_parent"
@@ -94,18 +92,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:gravity="center">
         <CheckBox
             android:layout_width="100dp"
             android:layout_height="match_parent"
             android:id="@+id/checkbox_piechart"
             android:text="Pie chart"/>
-        <SeekBar
+        <Spinner
             android:layout_width="100dp"
             android:layout_height="match_parent"
-            android:id="@+id/seekbar_number_piechart"/>
+            android:id="@+id/spinner_number_piechart"/>
         <Spinner
             android:layout_width="100dp"
             android:layout_height="match_parent"
