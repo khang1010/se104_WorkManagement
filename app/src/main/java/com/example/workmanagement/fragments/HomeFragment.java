@@ -2,6 +2,10 @@ package com.example.workmanagement.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,16 +13,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
-
 import com.example.workmanagement.R;
-import com.example.workmanagement.activities.HomeActivity;
+import com.example.workmanagement.activities.EditBoardActivity;
 import com.example.workmanagement.activities.LoginActivity;
-import com.example.workmanagement.databinding.ActivityHomeBinding;
 import com.example.workmanagement.databinding.FragmentHomeBinding;
 import com.example.workmanagement.utils.dto.BoardDetailsDTO;
 import com.example.workmanagement.utils.services.impl.BoardServiceImpl;
@@ -29,7 +26,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -67,30 +67,35 @@ public class HomeFragment extends Fragment {
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getActivity());
 
-        if (account == null) {
-            goSignOut();
-        }
-        binding.logoutBtn.setOnClickListener(view1 -> {
-            goSignOut();
-        });
+        if (account == null) goSignOut();
+        binding.logoutBtn.setOnClickListener(v -> goSignOut());
         binding.logoutBtn.setVisibility(View.GONE);
-        binding.navigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                Fragment fragment;
-                switch (item.getItemId()) {
-                    case R.id.navigation_table:
-                        loadFragment(new TableFragment());
-                        return true;
-                    case R.id.navigation_chart:
-                        loadFragment(new ChartFragment());
-                        return true;
-                }
-                return false;
+        binding.navigation.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.navigation_table:
+                    loadFragment(new TableFragment());
+                    return true;
+                case R.id.navigation_chart:
+                    loadFragment(new ChartFragment());
+                    return true;
             }
+            return false;
         });
-
-        //return inflater.inflate(R.layout.fragment_home, container, false);
+        binding.btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), EditBoardActivity.class);
+            intent.putExtra("BOARD_NAME", boardViewModel.getName().getValue());
+            intent.putExtra("BOARD_ADMIN", boardViewModel.getAdmin().getValue());
+            intent.putExtra("BOARD_MEMBERS", (ArrayList) boardViewModel.getMembers().getValue());
+            intent.putExtra("USER_ID", userViewModel.getId().getValue());
+            List<Long> ids = new ArrayList<>();
+            boardViewModel.getTables().getValue().forEach(t ->
+                    ids.addAll(t.getMembers()
+                            .stream().map(m -> m.getId())
+                            .collect(Collectors.toList()))
+            );
+            intent.putExtra("IDS", (ArrayList) ids.stream().distinct().collect(Collectors.toList()));
+            startActivity(intent);
+        });
         return view;
     }
 
@@ -104,7 +109,7 @@ public class HomeFragment extends Fragment {
                 BoardServiceImpl.getInstance().getService(userViewModel.getToken().getValue()).getBoardDetails(id).enqueue(new Callback<BoardDetailsDTO>() {
                     @Override
                     public void onResponse(Call<BoardDetailsDTO> call, Response<BoardDetailsDTO> response) {
-                        if(response.isSuccessful() && response.code() == 200) {
+                        if (response.isSuccessful() && response.code() == 200) {
                             boardViewModel.setId(response.body().getId());
                             boardViewModel.setName(response.body().getName());
                             boardViewModel.setAdmin(response.body().getAdmin());

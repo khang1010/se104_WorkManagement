@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:text="Giang"
-        android:textSize="12dp"
+        android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="@+id/imgAvatarSearchUser"
         app:layout_constraintStart_toEndOf="@+id/imgAvatarSearchUser"
         app:layout_constraintTop_toTopOf="@+id/imgAvatarSearchUser" />
@@ -33,6 +33,7 @@
         android:id="@+id/cbxSearchUser"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:buttonTint="@color/primary_0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
