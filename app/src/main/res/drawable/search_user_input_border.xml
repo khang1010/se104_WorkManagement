@@ -3,10 +3,6 @@
 
     <solid android:color="@color/text_field" />
 
-    <stroke
-        android:width="2dp"
-        android:color="@color/disable" />
-
     <corners
         android:radius="20dp" />
 
