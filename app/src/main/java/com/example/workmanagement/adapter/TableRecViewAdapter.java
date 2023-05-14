@@ -25,6 +25,7 @@ import com.example.workmanagement.tableview.TableViewAdapter;
 import com.example.workmanagement.tableview.TableViewListener;
 import com.example.workmanagement.tableview.TableViewModel;
 import com.example.workmanagement.tableview.model.Cell;
+import com.example.workmanagement.utils.SystemConstant;
 import com.example.workmanagement.utils.dto.DateAttributeDTO;
 import com.example.workmanagement.utils.dto.TableDTO;
 import com.example.workmanagement.utils.dto.TableDetailsDTO;
@@ -96,7 +97,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
 
         tableViewModel.setRow(listCells.size());
 
-        TableViewAdapter tableViewAdapter = new TableViewAdapter(tableViewModel, context);
+        TableViewAdapter tableViewAdapter = new TableViewAdapter(tableViewModel, context, boardViewModel, position);
         holder.table.setAdapter(tableViewAdapter);
         holder.table.setTableViewListener(new TableViewListener(holder.table, boardViewModel, userViewModel, tables, position));
         tableViewAdapter.setAllItems(tableViewModel.getColumnHeaderList(), tableViewModel.getRowHeaderList(), tableViewModel.getCellList());
@@ -168,7 +169,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
                 long tableId = tables.get(pos).getId();
                 List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
                 TaskDTO newTask = new TaskDTO();
-                newTask.setStatus("PENDING");
+                newTask.setStatus(SystemConstant.DONE_STATUS);
                 newTask.setUserId(adapter.getUser().getId());
                 newTask.setTableId(tableId);
                 List<TextAttributeDTO> textAttributes = new ArrayList<>();
