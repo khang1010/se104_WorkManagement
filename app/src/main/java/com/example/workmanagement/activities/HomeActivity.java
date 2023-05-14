@@ -142,9 +142,10 @@ public class HomeActivity extends AppCompatActivity {
                                 subMenu.getItem(0).setChecked(true);
                                 boardViewModel = new ViewModelProvider(HomeActivity.this).get(BoardViewModel.class);
                                 userViewModel.setCurrentBoardId(boards.get(0).getId());
-                                initSocketConnection(userViewModel.getToken().getValue());
                             }
                         });
+
+                        userViewModel.getId().observe(HomeActivity.this, id -> initSocketConnection(""));
 
                         userViewModel.getPhotoUrl().observe(HomeActivity.this, photoUrl -> {
                             if (!photoUrl.equals("null"))
@@ -241,7 +242,8 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        stompClient.disconnect();
+        if (stompClient != null)
+            stompClient.disconnect();
     }
 
     @Override
@@ -251,7 +253,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void initSocketConnection(String token) {
-//        if (stompClient == null || !stompClient.isConnected()) {
         if (stompClient != null)
             stompClient.disconnect();
         stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, SystemConstant.BASE_URL + "ws/websocket");
@@ -271,7 +272,7 @@ public class HomeActivity extends AppCompatActivity {
                         MessageStorage.getInstance().addMessage(new Moshi.Builder().build().adapter(MessageDTO.class).fromJson(message.getPayload()));
                     });
         });
-//        }
+
     }
 
     private void createNotification(MessageDTO message) throws ExecutionException, InterruptedException {
