@@ -29,12 +29,18 @@
     <color name="yellow">#ffff00</color>
     <color name="border_table">#9971EF</color>
     <color name="background_color">#f4eeff</color>
+    <color name="notification_background_color">#f4f4f4</color>
     <color name="lavender">#e6e1f1</color>
     <color name="text_user_profile">#c2b7d8</color>
     <color name="color_barchart">#7741EA</color>
     <color name="color_linechart">#9971EF</color>
     <color name="cinder">#171723</color>
     <color name="color_checkbox_unselected">#808080</color>
+    <color name="top1">#FEDE00</color>
+    <color name="top2">#808080</color>
+    <color name="top3">#808080</color>
+    <color name="top4">#808080</color>
+    <color name="top5">#808080</color>
 
 
 </resources>

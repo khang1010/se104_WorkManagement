@@ -1,7 +1,9 @@
 package com.example.workmanagement.adapter;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -104,12 +107,46 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         tableViewAdapter.setCellItems(listCells);
         holder.addTask.setOnClickListener(view -> showCreateTaskDialog(position));
 
+        holder.container.setOnClickListener(view -> showUpdateTableDialog(position));
+
         if (tables.get(position).getCreatedBy().getEmail().equals(userViewModel.getEmail().getValue()))
             holder.tableName.setOnClickListener(view -> {
                 holder.editTable.setVisibility(View.VISIBLE);
                 holder.accept.setVisibility(View.VISIBLE);
                 holder.tableName.setVisibility(View.GONE);
             });
+        else
+            holder.delete.setVisibility(View.GONE);
+
+        holder.delete.setOnClickListener(v -> {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("Are you sure you want to delete this table ?")
+                    .setPositiveButton("Yes", (dialogInterface, i) -> {
+                        TableServiceImpl.getInstance().getService(userViewModel.getToken().getValue())
+                                .deleteTable(tables.get(position).getId())
+                                .enqueue(new Callback<Void>() {
+                                    @Override
+                                    public void onResponse(Call<Void> call, Response<Void> response) {
+                                        if (response.isSuccessful() && response.code() == 200) {
+                                            long id = tables.get(holder.getAdapterPosition()).getId();
+                                            boardViewModel.setTables(tables.stream().filter(t -> t.getId() != id).collect(Collectors.toList()));
+                                        } else
+                                            Toast.makeText(context, response.message(), Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<Void> call, Throwable t) {
+                                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    })
+                    .setNegativeButton("No", (dialogInterface, i) -> {
+
+                    });
+            builder.create().show();
+
+        });
 
 
         holder.accept.setOnClickListener(view -> {
@@ -169,7 +206,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
                 long tableId = tables.get(pos).getId();
                 List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
                 TaskDTO newTask = new TaskDTO();
-                newTask.setStatus(SystemConstant.DONE_STATUS);
+                newTask.setStatus(SystemConstant.PENDING_STATUS);
                 newTask.setUserId(adapter.getUser().getId());
                 newTask.setTableId(tableId);
                 List<TextAttributeDTO> textAttributes = new ArrayList<>();
@@ -234,10 +271,111 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         dialog.show();
     }
 
+    private void showUpdateTableDialog(int pos) {
+
+        Dialog dialog = new Dialog(context);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.create_table);
+        TextView txtUpdate = dialog.findViewById(R.id.createTxt);
+        EditText txtSearchUser = dialog.findViewById(R.id.editTxtSearchUserTable);
+        EditText txtTableName = dialog.findViewById(R.id.editTxtCreateTableName);
+        ConstraintLayout btnCreateTable = dialog.findViewById(R.id.btnCreateTable);
+
+        txtUpdate.setText("Update");
+
+        UserInvitedRecViewAdapter invitedAdapter = new UserInvitedRecViewAdapter(context);
+        RecyclerView userInvitedRecView = dialog.findViewById(R.id.invitedUserRecView);
+        userInvitedRecView.setLayoutManager(new GridLayoutManager(context, 5));
+        userInvitedRecView.setAdapter(invitedAdapter);
+        invitedAdapter.setUsers(tables.get(pos).getMembers());
+
+        UserSearchRecViewAdapter adapter = new UserSearchRecViewAdapter(context, invitedAdapter);
+        RecyclerView userRecView = dialog.findViewById(R.id.searchUserRecView);
+        userRecView.setLayoutManager(new LinearLayoutManager(context));
+        userRecView.setAdapter(adapter);
+
+        txtTableName.setText(boardViewModel.getTables().getValue().get(pos).getName());
+
+        List<UserInfoDTO> users = new ArrayList<>();
+        users.addAll(tables.get(pos).getMembers());
+        adapter.setUsers(users);
+
+        if (!userViewModel.getEmail().getValue().equals(tables.get(pos).getCreatedBy().getEmail())) {
+            txtSearchUser.setVisibility(View.GONE);
+            userRecView.setVisibility(View.GONE);
+            btnCreateTable.setVisibility(View.GONE);
+        }
+
+        btnCreateTable.setOnClickListener(view -> {
+            List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
+            TableDTO newTable = new TableDTO();
+
+            if (!txtTableName.getText().toString().equals(tables.get(pos).getName()))
+                newTable.setName(txtTableName.getText().toString());
+
+            List<UserInfoDTO> removedUsers = tables.get(pos).getMembers().stream()
+                    .filter(m -> invitedAdapter.getUsers().stream().noneMatch(u -> u.getId() == m.getId()))
+                    .collect(Collectors.toList());
+            if (removedUsers.stream().anyMatch(u -> tables.get(pos).getTasks().stream().anyMatch(t -> t.getUser().getId() == u.getId()))) {
+                Toast.makeText(context, "Please remove user from task first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            newTable.setMemberIds(invitedAdapter.getUsers().stream().map(u -> u.getId()).collect(Collectors.toList()));
+
+            TableServiceImpl.getInstance().getService(userViewModel.getToken().getValue()).updateTable(tables.get(pos).getId(), newTable)
+                    .enqueue(new Callback<TableDetailsDTO>() {
+                        @Override
+                        public void onResponse(Call<TableDetailsDTO> call, Response<TableDetailsDTO> response) {
+                            if (response.isSuccessful() && response.code() == 200) {
+                                tableDetailsDTOS.set(pos, response.body());
+                                boardViewModel.setTables(tableDetailsDTOS);
+                                dialog.dismiss();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<TableDetailsDTO> call, Throwable t) {
+                            Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
+
+        txtSearchUser.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (!charSequence.toString().isEmpty()) {
+                    List<UserInfoDTO> users = boardViewModel.getMembers().getValue();
+                    adapter.setUsers(users.stream()
+                            .filter(m -> m.getId() != userViewModel.getId().getValue()
+                                    && (m.getDisplayName().trim().toLowerCase().contains(charSequence.toString().trim())
+                                    || m.getEmail().trim().toLowerCase().contains(charSequence.toString().trim()))
+                            )
+                            .collect(Collectors.toList()));
+                } else {
+                    List<UserInfoDTO> userList = new ArrayList<>();
+                    userList.addAll(tables.get(pos).getMembers());
+                    adapter.setUsers(userList);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+        dialog.show();
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         RelativeLayout container, titleBar;
-        ImageView down, download, up, accept;
+        ImageView down, download, up, accept, delete;
         TextView tableName, addTask;
         TableView table;
         EditText editTable;
@@ -254,6 +392,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
             addTask = itemView.findViewById(R.id.addTaskBtn);
             editTable = itemView.findViewById(R.id.editTableName);
             accept = itemView.findViewById(R.id.acceptBtn);
+            delete = itemView.findViewById(R.id.iconDelete);
 
             down.setOnClickListener(view -> {
                 down.setVisibility(View.GONE);
