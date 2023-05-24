@@ -1,13 +1,11 @@
 package com.example.workmanagement.activities;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
@@ -97,7 +95,7 @@ public class EditBoardActivity extends AppCompatActivity {
         UserInfoDTO admin = (UserInfoDTO) getIntent().getSerializableExtra("BOARD_ADMIN");
         Glide.with(this).asBitmap().load(admin.getPhotoUrl()).into(binding.imgAdminAvatar);
         binding.txtAdminName.setText(admin.getDisplayName());
-        binding.imgEditBoardBackToHome.setOnClickListener(v -> startActivity(new Intent(this, HomeActivity.class)));
+        binding.imgEditBoardBackToHome.setOnClickListener(v -> finish());
 
         if (userId != admin.getId())
             binding.imgEditBoard.setVisibility(View.GONE);
@@ -134,8 +132,7 @@ public class EditBoardActivity extends AppCompatActivity {
             }
 
             BoardDTO dto = new BoardDTO();
-            if (!binding.editTxtEditBoardName.getText().toString().trim().isEmpty()
-                    && !binding.txtBoardName.getText().toString().equals(binding.editTxtEditBoardName.getText().toString()))
+            if (!binding.txtBoardName.getText().equals(binding.editTxtEditBoardName.getText()))
                 dto.setName(binding.editTxtEditBoardName.getText().toString());
             if (ids.size() < memberIds.size())
                 if (members.stream().filter(m -> ids.stream().noneMatch(i -> i == m.getId()))
@@ -147,7 +144,6 @@ public class EditBoardActivity extends AppCompatActivity {
                     binding.imgEditBoard.setVisibility(View.VISIBLE);
                     binding.btnDoneEditBoard.setVisibility(View.GONE);
                     binding.editTxtEditBoardName.setVisibility(View.GONE);
-                    binding.btnDeleteBoard.setVisibility(View.GONE);
                     binding.editMembersRecView.setVisibility(View.GONE);
                     binding.btnInviteMember.setVisibility(View.GONE);
                     binding.membersRecView.setVisibility(View.VISIBLE);
@@ -166,7 +162,6 @@ public class EditBoardActivity extends AppCompatActivity {
                                 binding.imgEditBoard.setVisibility(View.VISIBLE);
                                 binding.btnDoneEditBoard.setVisibility(View.GONE);
                                 binding.editTxtEditBoardName.setVisibility(View.GONE);
-                                binding.btnDeleteBoard.setVisibility(View.GONE);
                                 binding.editMembersRecView.setVisibility(View.GONE);
                                 binding.btnInviteMember.setVisibility(View.GONE);
                                 binding.membersRecView.setVisibility(View.VISIBLE);
@@ -187,29 +182,20 @@ public class EditBoardActivity extends AppCompatActivity {
 
         });
 
-        binding.btnDeleteBoard.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Are you sure you want to delete this board ?")
-                    .setPositiveButton("Yes", (dialogInterface, i) ->
-                            BoardServiceImpl.getInstance().getService(token).deleteBoard(boardId)
-                                    .enqueue(new Callback<Void>() {
-                                        @Override
-                                        public void onResponse(Call<Void> call, Response<Void> response) {
-                                            if (response.isSuccessful() && response.code() == 200)
-                                                startActivity(new Intent(EditBoardActivity.this, HomeActivity.class));
-                                        }
+        binding.btnDeleteBoard.setOnClickListener(v -> BoardServiceImpl.getInstance().getService(token).deleteBoard(boardId)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful() && response.code() == 200)
+                            startActivity(new Intent(EditBoardActivity.this, HomeActivity.class));
+                    }
 
-                                        @Override
-                                        public void onFailure(Call<Void> call, Throwable t) {
-                                            Toast.makeText(EditBoardActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
-                                        }
-                                    })
-                    )
-                    .setNegativeButton("No", (dialogInterface, i) -> {
-
-                    });
-            builder.create().show();
-        });
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Toast.makeText(EditBoardActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+        );
 
         binding.btnInviteMember.setOnClickListener(v -> showInviteUserDialog(token, boardId, userId, binding.txtBoardName.getText().toString()));
     }
