@@ -62,6 +62,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
 
     public void setTables(List<TableDetailsDTO> tables) {
         this.tables = tables;
+        notifyDataSetChanged();
     }
 
     public TableRecViewAdapter(Context context, UserViewModel userViewModel, BoardViewModel boardViewModel) {
@@ -165,7 +166,6 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
 
                     });
             builder.create().show();
-
         });
 
 
@@ -215,6 +215,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         dialog.setContentView(R.layout.create_task);
         EditText txtSearchUser = dialog.findViewById(R.id.editTxtSearch);
         EditText txtTaskName = dialog.findViewById(R.id.editTxtCreateTaskName);
+        EditText txtTaskDesc = dialog.findViewById(R.id.editTxtCreateTaskDesc);
         ConstraintLayout btnCreateTask = dialog.findViewById(R.id.btnCreateTask);
 
         UserSearchInTaskAdapter adapter = new UserSearchInTaskAdapter(context);
@@ -223,10 +224,12 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         userRecView.setAdapter(adapter);
 
         btnCreateTask.setOnClickListener(view -> {
-            if (!txtTaskName.getText().toString().trim().isEmpty() && adapter.isChosen()) {
+            if (!txtTaskName.getText().toString().trim().isEmpty()
+                    && !txtTaskDesc.getText().toString().trim().isEmpty() && adapter.isChosen()) {
                 long tableId = tables.get(pos).getId();
                 List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
                 TaskDTO newTask = new TaskDTO();
+                newTask.setDescription(txtTaskDesc.getText().toString());
                 newTask.setStatus(SystemConstant.PENDING_STATUS);
                 newTask.setUserId(adapter.getUser().getId());
                 newTask.setTableId(tableId);
@@ -252,8 +255,8 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
                                     boardViewModel.setTables(tableDetailsDTOS);
                                     Toasty.success(context, "Create task success!", Toast.LENGTH_SHORT, true).show();
                                     dialog.dismiss();
-                                }
-                                else Toasty.error(context, response.raw().toString(), Toast.LENGTH_SHORT, true).show();
+                                } else
+                                    Toasty.error(context, response.raw().toString(), Toast.LENGTH_SHORT, true).show();
                             }
 
                             @Override
@@ -261,9 +264,8 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
                                 Toasty.error(context, t.getMessage(), Toast.LENGTH_SHORT, true).show();
                             }
                         });
-            } else
-                Toasty.warning(context, "Please fill full information", Toast.LENGTH_SHORT, true).show();
-
+                notifyDataSetChanged();
+            } else Toasty.warning(context, "Please fill full information", Toast.LENGTH_SHORT, true).show();
         });
 
         txtSearchUser.addTextChangedListener(new TextWatcher() {
@@ -303,6 +305,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         TextView txtUpdate = dialog.findViewById(R.id.createTxt);
         EditText txtSearchUser = dialog.findViewById(R.id.editTxtSearchUserTable);
         EditText txtTableName = dialog.findViewById(R.id.editTxtCreateTableName);
+        EditText txtTableDesc = dialog.findViewById(R.id.editTxtCreateTableDesc);
         ConstraintLayout btnCreateTable = dialog.findViewById(R.id.btnCreateTable);
 
         txtUpdate.setText("Update");
@@ -319,6 +322,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         userRecView.setAdapter(adapter);
 
         txtTableName.setText(boardViewModel.getTables().getValue().get(pos).getName());
+        txtTableDesc.setText(boardViewModel.getTables().getValue().get(pos).getDescription());
 
         List<UserInfoDTO> users = new ArrayList<>();
         users.addAll(tables.get(pos).getMembers());
@@ -337,6 +341,10 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
             if (!txtTableName.getText().toString().trim().isEmpty()
                     && !txtTableName.getText().toString().equals(tables.get(pos).getName()))
                 newTable.setName(txtTableName.getText().toString());
+
+            if (!txtTableDesc.getText().toString().trim().isEmpty()
+                    && !txtTableDesc.getText().toString().equals(tables.get(pos).getDescription()))
+                newTable.setDescription(txtTableDesc.getText().toString());
 
             List<UserInfoDTO> removedUsers = tables.get(pos).getMembers().stream()
                     .filter(m -> invitedAdapter.getUsers().stream().noneMatch(u -> u.getId() == m.getId()))

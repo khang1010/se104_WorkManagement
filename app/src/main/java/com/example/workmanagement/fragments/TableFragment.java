@@ -1,60 +1,32 @@
 package com.example.workmanagement.fragments;
 
-import android.app.Dialog;
-import android.content.res.Configuration;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.os.Handler;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.evrencoskun.tableview.TableView;
 import com.example.workmanagement.R;
-
-import com.example.workmanagement.activities.HomeActivity;
-
 import com.example.workmanagement.adapter.TableRecViewAdapter;
-import com.example.workmanagement.adapter.UserInvitedRecViewAdapter;
-import com.example.workmanagement.adapter.UserSearchInTaskAdapter;
-import com.example.workmanagement.adapter.UserSearchRecViewAdapter;
 import com.example.workmanagement.databinding.FragmentTableBinding;
-import com.example.workmanagement.tableview.TableViewAdapter;
-import com.example.workmanagement.tableview.TableViewListener;
-import com.example.workmanagement.tableview.TableViewModel;
-import com.example.workmanagement.tableview.model.Cell;
-import com.example.workmanagement.tableview.model.ColumnHeader;
-import com.example.workmanagement.tableview.model.RowHeader;
-import com.example.workmanagement.utils.dto.BoardDetailsDTO;
-import com.example.workmanagement.utils.dto.SearchUserResponse;
-import com.example.workmanagement.utils.dto.TableDTO;
-import com.example.workmanagement.utils.dto.TableDetailsDTO;
 import com.example.workmanagement.utils.dto.TaskDetailsDTO;
-import com.example.workmanagement.utils.dto.UserInfoDTO;
-import com.example.workmanagement.utils.services.TableService;
-import com.example.workmanagement.utils.services.impl.BoardServiceImpl;
-import com.example.workmanagement.utils.services.impl.TableServiceImpl;
-import com.example.workmanagement.utils.services.impl.UserServiceImpl;
+import com.example.workmanagement.utils.dto.UserDTO;
+import com.example.workmanagement.utils.services.impl.AuthServiceImpl;
 import com.example.workmanagement.viewmodels.BoardViewModel;
 import com.example.workmanagement.viewmodels.UserViewModel;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import es.dmoral.toasty.Toasty;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -128,7 +101,38 @@ public class TableFragment extends Fragment {
                 clockLayout.setVisibility(View.GONE);
             }, 500);
         });
+        binding.refreshLayout.setOnRefreshListener(() -> reloadUserData());
     }
 
+    private void reloadUserData() {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getActivity());
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(account.getEmail());
+        userDTO.setDisplayName(account.getDisplayName());
+        userDTO.setFamilyName(account.getFamilyName());
+        userDTO.setGivenName(account.getGivenName());
+        userDTO.setPhotoUrl(String.valueOf(account.getPhotoUrl()));
 
+        AuthServiceImpl.getInstance().getService().loginUser(userDTO).enqueue(new Callback<UserDTO>() {
+            @Override
+            public void onResponse(Call<UserDTO> call, Response<UserDTO> response) {
+                if (response.isSuccessful() && response.code() == 200) {
+                    userViewModel.setId(response.body().getId());
+                    userViewModel.setEmail(response.body().getEmail());
+                    userViewModel.setDisplayName(response.body().getDisplayName());
+                    userViewModel.setPhotoUrl(response.body().getPhotoUrl());
+                    userViewModel.setToken(response.body().getToken());
+                    userViewModel.setBoards(response.body().getBoards());
+                    userViewModel.setHasNonReadNotification(response.body().isHasNonReadNotification());
+                }
+                binding.refreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onFailure(Call<UserDTO> call, Throwable t) {
+                Toasty.error(getContext(), t.getMessage(), Toast.LENGTH_SHORT, true).show();
+                binding.refreshLayout.setRefreshing(false);
+            }
+        });
+    }
 }

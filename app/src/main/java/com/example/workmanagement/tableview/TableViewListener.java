@@ -50,6 +50,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.listener.ITableViewListener;
 import com.example.workmanagement.R;
+import com.example.workmanagement.adapter.StatusSpinnerAdapter;
 import com.example.workmanagement.adapter.UserSearchInTaskAdapter;
 import com.example.workmanagement.tableview.holder.ColumnHeaderViewHolder;
 import com.example.workmanagement.tableview.model.Cell;
@@ -70,6 +71,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -175,10 +177,7 @@ public class TableViewListener implements ITableViewListener {
         int mHour = c.get(Calendar.HOUR_OF_DAY);
         int mMinute = c.get(Calendar.MINUTE);
         TimePickerDialog dialog = new TimePickerDialog(mContext, R.style.DialogTheme, (timePicker, hours, minutes) -> {
-            //date_time = (String.format("%02d", hours) + ":" + String.format("%02d", minutes) + " " + date_time);
-            //cell_name.setText(date_time);
             LocalDateTime date = LocalDateTime.of(year, month + 1, day, hours, minutes, 0, 0);
-            //Toast.makeText(mContext, date.toString(), Toast.LENGTH_SHORT).show();
             long tableId = tables.get(pos).getId();
             List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
             TaskDetailsDTO task = tables.get(pos).getTasks().get(row);
@@ -231,11 +230,14 @@ public class TableViewListener implements ITableViewListener {
         dialog.setContentView(R.layout.create_task);
         EditText txtSearchUser = dialog.findViewById(R.id.editTxtSearch);
         EditText txtTaskName = dialog.findViewById(R.id.editTxtCreateTaskName);
+        EditText txtTaskDesc = dialog.findViewById(R.id.editTxtCreateTaskDesc);
+
         Spinner status = dialog.findViewById(R.id.statusSpinner);
         status.setVisibility(View.VISIBLE);
         String[] items = {"DONE", "PENDING", "STUCK"};
-        ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(mContext, android.R.layout.simple_spinner_dropdown_item, items);
+        StatusSpinnerAdapter statusAdapter = new StatusSpinnerAdapter(mContext, Arrays.asList(items));
         status.setAdapter(statusAdapter);
+
         String taskStatusStr = tables.get(pos).getTasks().get(row).getStatus();
         if (taskStatusStr.equals("DONE"))
             status.setSelection(0);
@@ -244,18 +246,6 @@ public class TableViewListener implements ITableViewListener {
         else if (taskStatusStr.equals("STUCK"))
             status.setSelection(2);
 
-        final int[] taskStatus = {0};
-        status.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                taskStatus[0] = i;
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
         ConstraintLayout btnCreateTask = dialog.findViewById(R.id.btnCreateTask);
         ImageView btnIcon = btnCreateTask.findViewById(R.id.imagePlus);
         TextView btnText = btnCreateTask.findViewById(R.id.createTxt);
@@ -284,6 +274,8 @@ public class TableViewListener implements ITableViewListener {
         adapter.setChosen(true);
 
         txtTaskName.setText(String.valueOf(listCells.get(row).get(0).getData()));
+        txtTaskDesc.setText(tables.get(pos).getTasks().get(row).getDescription());
+
         if (String.valueOf(listCells.get(row).get(1).getText()).equals("")) {
             txtSearchUser.setText("");
             List<UserInfoDTO> userList = new ArrayList<>();
@@ -302,18 +294,23 @@ public class TableViewListener implements ITableViewListener {
         }
 
         btnCreateTask.setOnClickListener(view -> {
-            if (!txtTaskName.getText().toString().isEmpty() && adapter.isChosen()) {
+            if (adapter.isChosen()) {
                 long tableId = tables.get(pos).getId();
                 List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
                 TaskDetailsDTO task = tables.get(pos).getTasks().get(row);
                 TaskDTO newTask = new TaskDTO();
-                newTask.setStatus(taskStatus[0]);
+                if (!txtTaskDesc.getText().toString().trim().isEmpty())
+                    newTask.setDescription(txtTaskDesc.getText().toString());
+                newTask.setStatus(status.getSelectedItemPosition());
                 newTask.setUserId(adapter.getUser().getId());
                 List<TextAttributeDTO> textAttributes = new ArrayList<>();
                 List<DateAttributeDTO> dateAttributes = new ArrayList<>();
                 TextAttributeDTO textAttribute = new TextAttributeDTO();
                 textAttribute.setId(task.getTextAttributes().stream().filter(atr -> atr.getName().equals("name")).findFirst().get().getId());
-                textAttribute.setName("name");
+                if (!txtTaskName.getText().toString().trim().isEmpty())
+                    textAttribute.setName("name");
+                else
+                    String.valueOf(listCells.get(row).get(0).getData());
                 textAttribute.setValue(txtTaskName.getText().toString());
                 textAttributes.add(textAttribute);
                 DateAttributeDTO dateAttribute = new DateAttributeDTO();
@@ -337,7 +334,8 @@ public class TableViewListener implements ITableViewListener {
                                     boardViewModel.setTables(tableDetailsDTOS);
                                     Toasty.success(mContext, "Update task success!", Toast.LENGTH_SHORT, true).show();
                                     dialog.dismiss();
-                                } else Toasty.error(mContext, response.raw().toString(), Toast.LENGTH_SHORT, true).show();
+                                } else
+                                    Toasty.error(mContext, response.raw().toString(), Toast.LENGTH_SHORT, true).show();
                             }
 
                             @Override
@@ -346,7 +344,7 @@ public class TableViewListener implements ITableViewListener {
                             }
                         });
             } else
-                Toast.makeText(mContext, "Please fill full information", Toast.LENGTH_SHORT).show();
+                Toasty.warning(mContext, "Please fill full information", Toast.LENGTH_SHORT, true).show();
 
         });
         txtSearchUser.addTextChangedListener(new TextWatcher() {
