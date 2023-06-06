@@ -254,12 +254,25 @@
                 android:textSize="15dp"
                 android:textStyle="normal"
                 android:layout_marginTop="10dp"/>
-            <androidx.appcompat.widget.LinearLayoutCompat
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:background="@drawable/background_overview_element"
+                android:text="Not thing..."
+                android:layout_marginTop="5dp"
+                android:id="@+id/txt_nothing"
+                android:gravity="center"
+                android:visibility="visible"/>
+            <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp">
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
+                <ListView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/lv_list_group"
+                    android:visibility="invisible"/>
+            </ScrollView>
 
 
         </androidx.appcompat.widget.LinearLayoutCompat>

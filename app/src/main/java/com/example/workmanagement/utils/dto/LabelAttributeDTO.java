@@ -5,7 +5,7 @@ import com.squareup.moshi.Json;
 public class LabelAttributeDTO {
 
     @Json(name = "id")
-    private Long id;
+    private long id;
 
     @Json(name = "name")
     private String name;

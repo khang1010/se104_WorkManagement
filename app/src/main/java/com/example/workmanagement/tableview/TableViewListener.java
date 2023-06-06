@@ -52,7 +52,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.listener.ITableViewListener;
 import com.example.workmanagement.R;
-import com.example.workmanagement.adapter.LabelSpinnerAdapter;
 import com.example.workmanagement.adapter.StatusSpinnerAdapter;
 import com.example.workmanagement.adapter.UserSearchInTaskAdapter;
 import com.example.workmanagement.tableview.holder.ColumnHeaderViewHolder;
@@ -60,8 +59,6 @@ import com.example.workmanagement.tableview.model.Cell;
 import com.example.workmanagement.tableview.popup.ColumnHeaderLongPressPopup;
 import com.example.workmanagement.tableview.popup.RowHeaderLongPressPopup;
 import com.example.workmanagement.utils.dto.DateAttributeDTO;
-import com.example.workmanagement.utils.dto.LabelAttributeDTO;
-import com.example.workmanagement.utils.dto.LabelDTO;
 import com.example.workmanagement.utils.dto.TableDetailsDTO;
 import com.example.workmanagement.utils.dto.TaskDTO;
 import com.example.workmanagement.utils.dto.TaskDetailsDTO;
@@ -256,22 +253,6 @@ public class TableViewListener implements ITableViewListener {
         else if (taskStatusStr.equals("STUCK"))
             status.setSelection(2);
 
-        Spinner label = dialog.findViewById(R.id.labelSpinner);
-        label.setVisibility(View.VISIBLE);
-        LabelSpinnerAdapter labelAdapter = new LabelSpinnerAdapter(mContext, boardViewModel.getLabels().getValue());
-        label.setAdapter(labelAdapter);
-        if (tables.get(pos).getTasks().get(row).getLabelAttributes().stream().filter(atr -> atr.getName().equals("label")).findFirst().isPresent()) {
-            int selected = 0;
-            long labelId = tables.get(pos).getTasks().get(row).getLabelAttributes()
-                    .stream().filter(atr -> atr.getName().equals("label")).findFirst().get().getLabelId();
-            for (int i = 0; i < boardViewModel.getLabels().getValue().size(); i++)
-                if (boardViewModel.getLabels().getValue().get(i).getId() == labelId) {
-                    selected = i;
-                    break;
-                }
-            label.setSelection(selected);
-        }
-
         ConstraintLayout btnCreateTask = dialog.findViewById(R.id.btnCreateTask);
         ImageView btnIcon = btnCreateTask.findViewById(R.id.imagePlus);
         TextView btnText = btnCreateTask.findViewById(R.id.createTxt);
@@ -331,8 +312,6 @@ public class TableViewListener implements ITableViewListener {
                 newTask.setUserId(adapter.getUser().getId());
                 List<TextAttributeDTO> textAttributes = new ArrayList<>();
                 List<DateAttributeDTO> dateAttributes = new ArrayList<>();
-                List<LabelAttributeDTO> labelAttributes = new ArrayList<>();
-
                 TextAttributeDTO textAttribute = new TextAttributeDTO();
                 textAttribute.setId(task.getTextAttributes().stream().filter(atr -> atr.getName().equals("name")).findFirst().get().getId());
                 if (!txtTaskName.getText().toString().trim().isEmpty())
@@ -341,28 +320,15 @@ public class TableViewListener implements ITableViewListener {
                     String.valueOf(listCells.get(row).get(0).getData());
                 textAttribute.setValue(txtTaskName.getText().toString());
                 textAttributes.add(textAttribute);
-
                 DateAttributeDTO dateAttribute = new DateAttributeDTO();
                 dateAttribute.setId(task.getDateAttributes().stream().filter(atr -> atr.getName().equals("deadline")).findFirst().get().getId());
                 dateAttribute.setName("deadline");
                 dateAttribute.setValue(task.getDateAttributes().stream().filter(atr -> atr.getName().equals("deadline")).findFirst().get().getValue());
                 dateAttributes.add(dateAttribute);
-
-                LabelAttributeDTO labelAttribute = new LabelAttributeDTO();
-                if (task.getLabelAttributes().stream().filter(atr -> atr.getName().equals("label")).findFirst().isPresent())
-                    labelAttribute.setId(task.getLabelAttributes().stream().filter(atr -> atr.getName().equals("label")).findFirst().get().getId());
-                labelAttribute.setName("label");
-                labelAttribute.setLabelId(label.getSelectedItemId());
-                labelAttributes.add(labelAttribute);
-
                 newTask.setTextAttributes(textAttributes);
                 newTask.setDateAttributes(dateAttributes);
-
-                if (boardViewModel.getLabels().getValue().size() > 0)
-                    newTask.setLabelAttributes(labelAttributes);
-
                 TaskServiceImpl.getInstance().getService(userViewModel.getToken().getValue()).updateTask(task.getId(), newTask)
-                        .enqueue(new Callback<>() {
+                        .enqueue(new Callback<TaskDetailsDTO>() {
                             @Override
                             public void onResponse(Call<TaskDetailsDTO> call, Response<TaskDetailsDTO> response) {
                                 if (response.isSuccessful() && response.code() == 200) {

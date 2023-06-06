@@ -3,9 +3,13 @@ package com.example.workmanagement.adapter;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -15,7 +19,6 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +36,6 @@ import com.example.workmanagement.tableview.TableViewModel;
 import com.example.workmanagement.tableview.model.Cell;
 import com.example.workmanagement.utils.SystemConstant;
 import com.example.workmanagement.utils.dto.DateAttributeDTO;
-import com.example.workmanagement.utils.dto.LabelAttributeDTO;
 import com.example.workmanagement.utils.dto.TableDTO;
 import com.example.workmanagement.utils.dto.TableDetailsDTO;
 import com.example.workmanagement.utils.dto.TaskDTO;
@@ -71,6 +73,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
     private Context context;
     private UserViewModel userViewModel;
     private BoardViewModel boardViewModel;
+//    private File dir;
 
     public void setTables(List<TableDetailsDTO> tables) {
         this.tables = tables;
@@ -216,6 +219,7 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
 
 //        holder.download.setOnClickListener(view -> {
 //            try {
+//                askForPermissions(position);
 //                createExcel(view, position, boardViewModel.getTables().getValue().get(position).getTasks());
 //            } catch (ParseException e) {
 //                throw new RuntimeException(e);
@@ -249,48 +253,28 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         userRecView.setLayoutManager(new LinearLayoutManager(context));
         userRecView.setAdapter(adapter);
 
-        Spinner label = dialog.findViewById(R.id.labelSpinner);
-        label.setVisibility(View.VISIBLE);
-        LabelSpinnerAdapter labelAdapter = new LabelSpinnerAdapter(context, boardViewModel.getLabels().getValue());
-        label.setAdapter(labelAdapter);
-
         btnCreateTask.setOnClickListener(view -> {
             if (!txtTaskName.getText().toString().trim().isEmpty()
                     && !txtTaskDesc.getText().toString().trim().isEmpty() && adapter.isChosen()) {
                 long tableId = tables.get(pos).getId();
                 List<TableDetailsDTO> tableDetailsDTOS = boardViewModel.getTables().getValue();
-
                 TaskDTO newTask = new TaskDTO();
                 newTask.setDescription(txtTaskDesc.getText().toString());
                 newTask.setStatus(SystemConstant.PENDING_STATUS);
                 newTask.setUserId(adapter.getUser().getId());
                 newTask.setTableId(tableId);
-
                 List<TextAttributeDTO> textAttributes = new ArrayList<>();
                 List<DateAttributeDTO> dateAttributes = new ArrayList<>();
-                List<LabelAttributeDTO> labelAttributes = new ArrayList<>();
-
                 TextAttributeDTO textAttribute = new TextAttributeDTO();
                 textAttribute.setName("name");
                 textAttribute.setValue(txtTaskName.getText().toString());
                 textAttributes.add(textAttribute);
-
                 DateAttributeDTO dateAttribute = new DateAttributeDTO();
                 dateAttribute.setName("deadline");
                 dateAttribute.setValue(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()));
                 dateAttributes.add(dateAttribute);
-
-                LabelAttributeDTO labelAttribute = new LabelAttributeDTO();
-                labelAttribute.setName("label");
-                labelAttribute.setLabelId(label.getSelectedItemId());
-                labelAttributes.add(labelAttribute);
-
                 newTask.setTextAttributes(textAttributes);
                 newTask.setDateAttributes(dateAttributes);
-
-                if (boardViewModel.getLabels().getValue().size() > 0)
-                    newTask.setLabelAttributes(labelAttributes);
-
                 TaskServiceImpl.getInstance().getService(userViewModel.getToken().getValue()).createTask(newTask)
                         .enqueue(new Callback<TaskDetailsDTO>() {
                             @Override
@@ -458,6 +442,27 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
         dialog.show();
     }
 
+    public void askForPermissions(int pos) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                context.startActivity(intent);
+                return;
+            }
+            createDir(pos);
+        }
+    }
+
+    public void createDir(int pos){
+        String dirPath = context.getExternalFilesDir(null).getAbsolutePath();
+        String filePath = dirPath + "/task/";
+        File dir = new File(filePath);
+
+        if (!dir.exists()){
+            dir.mkdirs();
+        }
+    }
+
     public void createExcel(View view, int pos, List<TaskDetailsDTO> tasks) throws ParseException {
         HSSFWorkbook hssfWorkbook = new HSSFWorkbook();
         HSSFSheet hssfSheet = hssfWorkbook.createSheet();
@@ -497,7 +502,12 @@ public class TableRecViewAdapter extends RecyclerView.Adapter<TableRecViewAdapte
             hssfCell.setCellValue(tasks.get(i).getStatus());
         }
 
-        File file = new File(Environment.getExternalStorageDirectory() + "/" + boardViewModel.getTables().getValue().get(pos).getName() + ".xls");
+        String dirPath = context.getExternalFilesDir(null).getAbsolutePath();
+        String filePath = dirPath + "/task/";
+        File file = new File(filePath + boardViewModel.getTables().getValue().get(pos).getName() + ".xls");
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.parse(" content://storage/emulated/0/Android/data/com.example.workmanagement/files/task/" + boardViewModel.getTables().getValue().get(pos).getName() + ".xls"),"*/*");
+        context.startActivity(intent);
 
         try {
             if (!file.exists()) {
