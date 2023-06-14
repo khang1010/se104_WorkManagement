@@ -327,22 +327,19 @@ public class TableViewListener implements ITableViewListener {
                 TaskDTO newTask = new TaskDTO();
                 if (!txtTaskDesc.getText().toString().trim().isEmpty())
                     newTask.setDescription(txtTaskDesc.getText().toString());
-
                 newTask.setStatus(status.getSelectedItemPosition());
                 newTask.setUserId(adapter.getUser().getId());
-
                 List<TextAttributeDTO> textAttributes = new ArrayList<>();
                 List<DateAttributeDTO> dateAttributes = new ArrayList<>();
                 List<LabelAttributeDTO> labelAttributes = new ArrayList<>();
 
                 TextAttributeDTO textAttribute = new TextAttributeDTO();
                 textAttribute.setId(task.getTextAttributes().stream().filter(atr -> atr.getName().equals("name")).findFirst().get().getId());
-                textAttribute.setName("name");
                 if (!txtTaskName.getText().toString().trim().isEmpty())
-                    textAttribute.setValue(txtTaskName.getText().toString());
+                    textAttribute.setName("name");
                 else
-                    textAttribute.setValue(String.valueOf(listCells.get(row).get(0).getData()));
-
+                    String.valueOf(listCells.get(row).get(0).getData());
+                textAttribute.setValue(txtTaskName.getText().toString());
                 textAttributes.add(textAttribute);
 
                 DateAttributeDTO dateAttribute = new DateAttributeDTO();
